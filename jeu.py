@@ -2,16 +2,21 @@ import pygame
 import random
 
 # Paramètres de la fenêtre
-LARGEUR, HAUTEUR = 800, 600
+LARGEUR, HAUTEUR = 800, 600 
 GRILLE_TAILLE = 40  # Taille d'une case
+#20 cases en longueur et 15 en hauteur
 
 # Couleurs
 GRIS = (200, 200, 200)
 NOIR = (0, 0, 0)
 BLEU = (0, 0, 255)  # Eau
 ROUGE = (255, 0, 0)  # Lave
-BLANC = (255, 255, 255)  # Pouvoir spécial
+BLANC = (255, 255, 255)  # VIe
 
+"""cases de départ des unités -joueur1- (0,0) , (0,1) , (0,2) -joueur 2- (19,14) , (18,14) , (17,14)
+Eviter ces cases la pour generation des cases aleatoires +1 pour espace
+"""
+cases_evitables = [(0,0) , (1,0) , (2,0) ,(19,14) , (18,14) , (17,14)]
 
 class Game:
     """
@@ -36,18 +41,21 @@ class Game:
             et les valeurs sont des couleurs représentant le type de case spéciale.
         """
         cases = {}
-        for _ in range(10):  # 10 cases d'eau
-            x, y = random.randint(0, LARGEUR // GRILLE_TAILLE - 1), random.randint(0, HAUTEUR // GRILLE_TAILLE - 1)
-            cases[(x, y)] = BLEU
-            #Avoir la compétence savoir nager poour survivre
-        for _ in range(5):  # 5 cases de lave
-            x, y = random.randint(0, LARGEUR // GRILLE_TAILLE - 1), random.randint(0, HAUTEUR // GRILLE_TAILLE - 1)
-            cases[(x, y)] = ROUGE
-            #Tue n'importe quel unité
-        for _ in range(3):  # 3 cases de pouvoir spécial
-            x, y = random.randint(0, LARGEUR // GRILLE_TAILLE - 1), random.randint(0, HAUTEUR // GRILLE_TAILLE - 1)
-            cases[(x, y)] = BLANC
-            #
+        for _ in range(25):  # 25 cases d'eau
+            x, y = random.randint(0, (LARGEUR // GRILLE_TAILLE )- 1), random.randint(0,( HAUTEUR // GRILLE_TAILLE )- 1)
+            if (x,y) not in cases_evitables:
+                cases[(x, y)] = BLEU
+            #Avoir la compétence savoir nager pour passer à travers
+        for _ in range(15):  # 15 cases de lave
+            x, y = random.randint(0, (LARGEUR // GRILLE_TAILLE) - 1), random.randint(0, (HAUTEUR // GRILLE_TAILLE) - 1)
+            if (x,y) not in cases_evitables:
+                cases[(x, y)] = ROUGE
+            #Tue n'importe quel unité sauf sorcier qui annule
+        for _ in range(6):  # 6 cases de pouvoir spécial
+            x, y = random.randint(0, (LARGEUR // GRILLE_TAILLE) - 1), random.randint(0, (HAUTEUR // GRILLE_TAILLE )- 1)
+            if (x,y) not in cases_evitables:
+                cases[(x, y)] = BLANC
+            #Redonne tous les points de vie
         return cases
 
     def dessiner_grille(self):
@@ -72,7 +80,7 @@ def main():
 
     # Instanciation du jeu
     game = Game(fenetre)
-
+    print(game.cases_speciales)
     # Boucle principale du jeu
     en_cours = True
     while en_cours:
