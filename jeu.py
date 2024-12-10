@@ -1,5 +1,6 @@
 import pygame
 import random
+from unite import*
 
 # Paramètres de la fenêtre
 LARGEUR, HAUTEUR = 800, 600 
@@ -29,6 +30,9 @@ class Game:
         """
         self.fenetre = fenetre
         self.cases_speciales = self.generer_cases_speciales()
+        self.unites = self.creer_unites()
+        self.unite_active_index = 0
+        self.joueur_actuel = "Equipe 1"
 
     def generer_cases_speciales(self):
         """
@@ -68,6 +72,54 @@ class Game:
                 if coord in self.cases_speciales:
                     pygame.draw.rect(self.fenetre, self.cases_speciales[coord], rect)
                 pygame.draw.rect(self.fenetre, GRIS, rect, 1)  # Bordures de la grille
+                
+                
+    def creer_unites(self):
+        """Crée deux équipes d'unités."""
+        equipe_1 = [
+            Unite(0, 0, 100 , 10,30,JAUNE, "triangle", "Equipe 1"),  # Archer
+            Unite(1, 0, 100 , 10,30,JAUNE, "cercle", "Equipe 1"),  # Sorcier
+            Unite(2, 0, 100 , 10,30,JAUNE, "losange", "Equipe 1"),  # Barbare
+        ]
+        equipe_2 = [
+            Unite(19, 14, 100 , 10,30,ORANGE, "triangle", "Equipe 2"),  # Archer
+            Unite(18, 14, 100 , 10,30,ORANGE, "cercle", "Equipe 2"),  # Sorcier
+            Unite(17, 14, 100 , 10,30,ORANGE, "losange", "Equipe 2"),  # Barbare
+        ]
+        return equipe_1 + equipe_2
+    
+    def dessiner_unites(self):
+        """Dessine toutes les unités."""
+        # unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
+        # for i, unite in enumerate(unites_joueur):
+        #     u_active = (i == self.unite_active_index)
+        #     unite.dessiner(self.fenetre, u_active)
+        
+        for unite in self.unites:
+            unite.dessiner(self.fenetre)
+            
+    def gerer_touches(self, event):
+        """Gère les touches en fonction de l'événement `KEYDOWN`."""
+        unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
+        unite_active = unites_joueur[self.unite_active_index]
+        unite_active.u_active = True
+
+        if event.key == pygame.K_UP:
+            unite_active.deplacement(0,-1)
+        elif event.key == pygame.K_DOWN:
+            unite_active.deplacement(0,1)
+        elif event.key == pygame.K_LEFT:
+            unite_active.deplacement(-1,0)
+        elif event.key == pygame.K_RIGHT:
+            unite_active.deplacement(1,0)
+        elif event.key == pygame.K_TAB:
+            self.unite_active_index = (self.unite_active_index + 1) % len(unites_joueur)
+            unite_active.u_active = False
+        elif event.key == pygame.K_SPACE:
+            self.joueur_actuel = "Equipe 2" if self.joueur_actuel == "Equipe 1" else "Equipe 1"
+            self.unite_active_index = 0
+            unite_active.u_active = False
+            
 
 
 def main():
@@ -87,8 +139,11 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 en_cours = False
+            elif event.type == pygame.KEYDOWN:
+                game.gerer_touches(event)  # Gérer les appuis de touches
 
-        game.dessiner_grille()  # Dessiner la grille avec cases spéciales
+        game.dessiner_grille() # Dessiner la grille avec cases spéciales
+        game.dessiner_unites()
         pygame.display.update()  # Mettre à jour l'affichage
 
     pygame.quit()
