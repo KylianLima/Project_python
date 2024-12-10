@@ -83,6 +83,16 @@ class Game:
     def dessiner_grille(self):
         """Dessine une grille sur l'écran avec des cases spéciales."""
         self.fenetre.fill(NOIR)
+        unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
+        unite_active = unites_joueur[self.unite_active_index]
+
+        # Dessiner les cases de portée
+        for x, y in unite_active.calculer_portee():
+           if 0 <= x < LARGEUR // GRILLE_TAILLE and 0 <= y < HAUTEUR // GRILLE_TAILLE:
+               pygame.draw.rect(self.fenetre, GRIS, 
+                                (x * GRILLE_TAILLE, y * GRILLE_TAILLE, GRILLE_TAILLE, GRILLE_TAILLE))
+
+        
         for x in range(0, LARGEUR, GRILLE_TAILLE):
             for y in range(0, HAUTEUR, GRILLE_TAILLE):
                 rect = pygame.Rect(x, y, GRILLE_TAILLE, GRILLE_TAILLE)
@@ -95,14 +105,14 @@ class Game:
     def creer_unites(self):
         """Crée deux équipes d'unités."""
         equipe_1 = [
-            Unite(0, 0, 100 , 30,10,JAUNE, "triangle", "Equipe 1", "Archer"),  # Archer
-            Unite(1, 0, 100 , 50,30,JAUNE, "cercle", "Equipe 1", "Sorcier"),  # Sorcier
-            Unite(2, 0, 200 , 20,40,JAUNE, "losange", "Equipe 1", "Barbare"),  # Barbare
+            Archer(0, 0, ORANGE, "Equipe 1"),
+            Sorcier(1, 0, ORANGE, "Equipe 1"),
+            Barbare(2, 0, ORANGE,"Equipe 1"),
         ]
         equipe_2 = [
-            Unite(19, 14, 100 , 30,10,ORANGE, "triangle", "Equipe 2","Archer"),  # Archer
-            Unite(18, 14, 100 , 50,30,ORANGE, "cercle", "Equipe 2", "Sorcier"),  # Sorcier
-            Unite(17, 14, 100 , 20,40,ORANGE, "losange", "Equipe 2", "Barbare"),  # Barbare
+            Archer(19, 14, JAUNE,"Equipe 2"),
+            Sorcier(18, 14, JAUNE, "Equipe 2"),
+            Barbare(17, 14, JAUNE, "Equipe 2"),
         ]
         return equipe_1 + equipe_2
     
@@ -152,14 +162,31 @@ class Game:
             return
             
             
+    # def attaquer_adverse(self, unite_active):
+    #     """Permet à l'unité active d'attaquer une cible adverse."""
+    #     adversaires = [u for u in self.unites if u.equipe != self.joueur_actuel]
+    #     for adversaire in adversaires:
+    #         distance = ((unite_active.x - adversaire.x) ** 2 + (unite_active.y - adversaire.y) ** 2) ** 0.5
+    #         if distance <= unite_active.portee:
+    #             unite_active.attaquer(adversaire)
+    #             break
+
     def attaquer_adverse(self, unite_active):
-        """Permet à l'unité active d'attaquer une cible adverse."""
+        """Permet à l'unité active d'attaquer une cible adverse si elle est dans sa portée."""
         adversaires = [u for u in self.unites if u.equipe != self.joueur_actuel]
+        portee = unite_active.calculer_portee()
+
         for adversaire in adversaires:
-            distance = ((unite_active.x - adversaire.x) ** 2 + (unite_active.y - adversaire.y) ** 2) ** 0.5
-            if distance <= unite_active.portee:
+            if (adversaire.x, adversaire.y) in portee:  # Vérifie si l'adversaire est dans la portée
                 unite_active.attaquer(adversaire)
-                break
+
+                # Supprimer l'adversaire s'il est mort
+                if adversaire.points_de_vie <= 0:
+                    self.unites.remove(adversaire)
+                    print(f"{adversaire.nom} a été éliminé !")
+
+                return  # Attaque terminée après avoir trouvé une cible valide
+        print("Aucun adversaire à portée.")
             
     def afficher_message(self, message):
         """Affiche un message au centre de l'écran."""
