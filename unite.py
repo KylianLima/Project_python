@@ -11,9 +11,9 @@ NOIR = (0, 0, 0)
 BLEU = (0, 0, 255)  # Eau
 ROUGE = (255, 0, 0)  # Lave
 BLANC = (255, 255, 255)  # Pouvoir spécial
-VERT = (0, 255, 0)  # Archer
-ORANGE = (255, 165, 0)  # Sorcier
-JAUNE = (255, 255, 0)  # Barbare
+VERT = (0, 255, 0)  # Selection
+ORANGE = (255, 165, 0)  # Equipe 2
+JAUNE = (255, 255, 0)  # Equipe 1
 
 class Unite:
     
@@ -27,6 +27,8 @@ class Unite:
         self.couleur = couleur
         self.forme = forme  # "triangle", "cercle", "losange"
         self.equipe = equipe  # "Equipe 1" ou "Equipe 2"
+        self.u_active = False
+        
 
     def deplacement(self, dx, dy):
         #print(f"{self.nom} se déplace vers {direction}.")
@@ -34,7 +36,7 @@ class Unite:
         if 0 <= self.x + dx < GRILLE_TAILLE and 0 <= self.y + dy < GRILLE_TAILLE:
             self.x += dx
             self.y += dy
-        
+        #Probleme: sort de la fenetre
     
     def attaquer(self, cible):
         #print(f"{self.nom} attaque {cible.nom} avec {self.attaque} points de puissance.")
@@ -44,6 +46,15 @@ class Unite:
     
     def dessiner(self, fenetre):
         """Dessine l'unité sur la grille."""
+        # Coordonnées de la case
+        case_x = self.x * GRILLE_TAILLE
+        case_y = self.y * GRILLE_TAILLE
+
+        # Dessiner un carré vert derrière si l'unité est active
+        if self.u_active:
+            pygame.draw.rect(fenetre, VERT, (case_x, case_y, GRILLE_TAILLE, GRILLE_TAILLE))
+        
+        
         # Coordonnées du centre de la case
         centre_x = self.x * GRILLE_TAILLE + GRILLE_TAILLE // 2
         centre_y = self.y * GRILLE_TAILLE + GRILLE_TAILLE // 2
