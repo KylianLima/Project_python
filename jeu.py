@@ -61,7 +61,25 @@ class Game:
                 cases[(x, y)] = BLANC
             #Redonne tous les points de vie
         return cases
+    
+    def verifier_unites(self):
+        """Vérifie les unités et détermine si une équipe a gagné."""
+        # Supprimer les unités avec PV <= 0
+        self.unites = [u for u in self.unites if u.points_de_vie > 0]
 
+        # Vérifier si une équipe n'a plus d'unités
+        equipe_1 = [u for u in self.unites if u.equipe == "Equipe 1"]
+        equipe_2 = [u for u in self.unites if u.equipe == "Equipe 2"]
+
+        if not equipe_1:  # Si l'équipe 1 n'a plus d'unités
+            self.afficher_message("Equipe 2 a gagné !")
+            return True
+        if not equipe_2:  # Si l'équipe 2 n'a plus d'unités
+            self.afficher_message("Equipe 1 a gagné !")
+            return True
+
+        return False
+    
     def dessiner_grille(self):
         """Dessine une grille sur l'écran avec des cases spéciales."""
         self.fenetre.fill(NOIR)
@@ -77,14 +95,14 @@ class Game:
     def creer_unites(self):
         """Crée deux équipes d'unités."""
         equipe_1 = [
-            Unite(0, 0, 100 , 10,30,JAUNE, "triangle", "Equipe 1"),  # Archer
-            Unite(1, 0, 100 , 10,30,JAUNE, "cercle", "Equipe 1"),  # Sorcier
-            Unite(2, 0, 100 , 10,30,JAUNE, "losange", "Equipe 1"),  # Barbare
+            Unite(0, 0, 100 , 30,10,JAUNE, "triangle", "Equipe 1", "Archer"),  # Archer
+            Unite(1, 0, 100 , 50,30,JAUNE, "cercle", "Equipe 1", "Sorcier"),  # Sorcier
+            Unite(2, 0, 200 , 20,40,JAUNE, "losange", "Equipe 1", "Barbare"),  # Barbare
         ]
         equipe_2 = [
-            Unite(19, 14, 100 , 10,30,ORANGE, "triangle", "Equipe 2"),  # Archer
-            Unite(18, 14, 100 , 10,30,ORANGE, "cercle", "Equipe 2"),  # Sorcier
-            Unite(17, 14, 100 , 10,30,ORANGE, "losange", "Equipe 2"),  # Barbare
+            Unite(19, 14, 100 , 30,10,ORANGE, "triangle", "Equipe 2","Archer"),  # Archer
+            Unite(18, 14, 100 , 50,30,ORANGE, "cercle", "Equipe 2", "Sorcier"),  # Sorcier
+            Unite(17, 14, 100 , 20,40,ORANGE, "losange", "Equipe 2", "Barbare"),  # Barbare
         ]
         return equipe_1 + equipe_2
     
@@ -95,8 +113,15 @@ class Game:
         #     u_active = (i == self.unite_active_index)
         #     unite.dessiner(self.fenetre, u_active)
         
+        # for unite in self.unites:
+        #     unite.dessiner(self.fenetre)
+        
         for unite in self.unites:
-            unite.dessiner(self.fenetre)
+           u_active = False
+           if unite.equipe == self.joueur_actuel:
+               unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
+               u_active = (unites_joueur.index(unite) == self.unite_active_index)
+           unite.dessiner(self.fenetre, u_active)
             
     def gerer_touches(self, event):
         """Gère les touches en fonction de l'événement `KEYDOWN`."""
@@ -119,7 +144,33 @@ class Game:
             self.joueur_actuel = "Equipe 2" if self.joueur_actuel == "Equipe 1" else "Equipe 1"
             self.unite_active_index = 0
             unite_active.u_active = False
+        elif event.key == pygame.K_a:  # Touche pour attaquer
+            self.attaquer_adverse(unite_active)
             
+        # Vérifier les unités restantes après chaque action
+        if self.verifier_unites():
+            return
+            
+            
+    def attaquer_adverse(self, unite_active):
+        """Permet à l'unité active d'attaquer une cible adverse."""
+        adversaires = [u for u in self.unites if u.equipe != self.joueur_actuel]
+        for adversaire in adversaires:
+            distance = ((unite_active.x - adversaire.x) ** 2 + (unite_active.y - adversaire.y) ** 2) ** 0.5
+            if distance <= unite_active.portee:
+                unite_active.attaquer(adversaire)
+                break
+            
+    def afficher_message(self, message):
+        """Affiche un message au centre de l'écran."""
+        font = pygame.font.SysFont(None, 50)
+        texte = font.render(message, True, (255, 255, 255))
+        texte_rect = texte.get_rect(center=(LARGEUR // 2, HAUTEUR // 2))
+        self.fenetre.blit(texte, texte_rect)
+        pygame.display.update()
+        pygame.time.wait(3000)  # Attendre 3 secondes avant de quitter
+        pygame.quit()
+        exit()
 
 
 def main():
