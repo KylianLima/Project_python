@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+from jeu import*
 
 # Paramètres de la fenêtre
 LARGEUR, HAUTEUR = 800, 600
@@ -33,13 +34,17 @@ class Unite:
         #self.portee = self.calculer_portee()
         
 
-    def deplacement(self, dx, dy):
+    def deplacement(self, dx, dy,cases_speciales):
         #print(f"{self.nom} se déplace vers {direction}.")
         """Déplace l'unité de dx, dy."""
         if 0 <= self.x + dx * self.vitesse <= LARGEUR//GRILLE_TAILLE-1 and 0 <= self.y + dy *self.vitesse <= HAUTEUR//GRILLE_TAILLE-1:
             self.x += dx * self.vitesse
             self.y += dy * self.vitesse
         #Probleme: sort de la fenetre => Résolu
+            # Vérifier si une case spéciale existe à cette position
+            for case in cases_speciales:
+                if case.x == self.x and case.y == self.y:
+                    case.interact(self)
     
     def attaquer(self, cible):
         # #print(f"{self.nom} attaque {cible.nom} avec {self.attaque} points de puissance.")
