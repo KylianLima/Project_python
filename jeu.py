@@ -1,6 +1,7 @@
 import pygame
 import random
 from unite import*
+from case import*
 
 # Paramètres de la fenêtre
 LARGEUR, HAUTEUR = 800, 600 
@@ -40,27 +41,22 @@ class Game:
         """
         Génère des cases spéciales avec des couleurs spécifiques aléatoirement.
 
-        Retourne
-        --------
-        dict
-            Un dictionnaire où les clés sont des tuples (x, y) représentant les coordonnées
-            et les valeurs sont des couleurs représentant le type de case spéciale.
         """
-        cases = {}
+        cases = []
         for _ in range(25):  # 25 cases d'eau
             x, y = random.randint(0, (LARGEUR // GRILLE_TAILLE )- 1), random.randint(0,( HAUTEUR // GRILLE_TAILLE )- 1)
             if (x,y) not in cases_evitables:
-                cases[(x, y)] = BLEU
+                cases.append(Eau(x,y))
             #Avoir la compétence savoir nager pour passer à travers
         for _ in range(15):  # 15 cases de lave
             x, y = random.randint(0, (LARGEUR // GRILLE_TAILLE) - 1), random.randint(0, (HAUTEUR // GRILLE_TAILLE) - 1)
             if (x,y) not in cases_evitables:
-                cases[(x, y)] = ROUGE
+                cases.append(Lave(x,y))
             #Tue n'importe quel unité sauf sorcier qui annule
         for _ in range(6):  # 6 cases de pouvoir spécial
             x, y = random.randint(0, (LARGEUR // GRILLE_TAILLE) - 1), random.randint(0, (HAUTEUR // GRILLE_TAILLE )- 1)
             if (x,y) not in cases_evitables:
-                cases[(x, y)] = BLANC
+                cases.append(Vie(x,y))
             #Redonne tous les points de vie
         return cases
     
@@ -94,13 +90,18 @@ class Game:
                pygame.draw.rect(self.fenetre, COULEUR_PORTEE, 
                                 (x * GRILLE_TAILLE, y * GRILLE_TAILLE, GRILLE_TAILLE, GRILLE_TAILLE))
 
+        # Dessiner les cases spéciales
+        for case in self.cases_speciales:
+            case.dessiner_case(self.fenetre, GRILLE_TAILLE)
+        
         
         for x in range(0, LARGEUR, GRILLE_TAILLE):
             for y in range(0, HAUTEUR, GRILLE_TAILLE):
                 rect = pygame.Rect(x, y, GRILLE_TAILLE, GRILLE_TAILLE)
-                coord = (x // GRILLE_TAILLE, y // GRILLE_TAILLE)
-                if coord in self.cases_speciales:
-                    pygame.draw.rect(self.fenetre, self.cases_speciales[coord], rect)
+                #coord = (x // GRILLE_TAILLE, y // GRILLE_TAILLE)
+                #if coord in self.cases_speciales:
+                 #   self.cases_speciales[coord].dessiner_case(self.fenetre, GRILLE_TAILLE)
+                    # pygame.draw.rect(self.fenetre, self.cases_speciales[coord], rect)
                 pygame.draw.rect(self.fenetre, GRIS, rect, 1)  # Bordures de la grille
                 
                 
@@ -163,16 +164,16 @@ class Game:
         
         #incrementation de self.actions pour limiter le nombre d'actions
         if event.key == pygame.K_UP:
-            unite_active.deplacement(0,-1)
+            unite_active.deplacement(0,-1,self.cases_speciales)
             self.actions +=1
         elif event.key == pygame.K_DOWN:
-            unite_active.deplacement(0,1)
+            unite_active.deplacement(0,1,self.cases_speciales)
             self.actions +=1
         elif event.key == pygame.K_LEFT:
-            unite_active.deplacement(-1,0)
+            unite_active.deplacement(-1,0,self.cases_speciales)
             self.actions +=1
         elif event.key == pygame.K_RIGHT:
-            unite_active.deplacement(1,0)
+            unite_active.deplacement(1,0,self.cases_speciales)
             self.actions +=1
         elif event.key == pygame.K_TAB:
             self.unite_active_index = (self.unite_active_index + 1) % len(unites_joueur)
@@ -248,7 +249,7 @@ def main():
 
     # Instanciation du jeu
     game = Game(fenetre)
-    print(game.cases_speciales)
+
     # Boucle principale du jeu
     en_cours = True
     while en_cours:
