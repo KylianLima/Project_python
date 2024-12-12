@@ -9,6 +9,7 @@ GRILLE_TAILLE = 40  # Taille d'une case
 
 # Couleurs
 GRIS = (200, 200, 200)
+COULEUR_PORTEE = (100,100,100)
 NOIR = (0, 0, 0)
 BLEU = (0, 0, 255)  # Eau
 ROUGE = (255, 0, 0)  # Lave
@@ -33,6 +34,7 @@ class Game:
         self.unites = self.creer_unites()
         self.unite_active_index = 0
         self.joueur_actuel = "Equipe 1"
+        self.actions = 0
 
     def generer_cases_speciales(self):
         """
@@ -89,7 +91,7 @@ class Game:
         # Dessiner les cases de portée
         for x, y in unite_active.calculer_portee():
            if 0 <= x < LARGEUR // GRILLE_TAILLE and 0 <= y < HAUTEUR // GRILLE_TAILLE:
-               pygame.draw.rect(self.fenetre, GRIS, 
+               pygame.draw.rect(self.fenetre, COULEUR_PORTEE, 
                                 (x * GRILLE_TAILLE, y * GRILLE_TAILLE, GRILLE_TAILLE, GRILLE_TAILLE))
 
         
@@ -132,30 +134,59 @@ class Game:
                unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
                u_active = (unites_joueur.index(unite) == self.unite_active_index)
            unite.dessiner(self.fenetre, u_active)
+           
+           
+    def changer_tour(self):
+        """Passe au joueur suivant et réinitialise les actions."""
+        self.joueur_actuel = "Equipe 2" if self.joueur_actuel == "Equipe 1" else "Equipe 1"
+        self.unite_active_index = 0
+        self.actions= 0  # Réinitialiser les actions
             
     def gerer_touches(self, event):
         """Gère les touches en fonction de l'événement `KEYDOWN`."""
+        
+        if self.actions > 4:
+            
+            
+            if event.key == pygame.K_SPACE:
+                
+                self.changer_tour()
+                
+            else : 
+                print("Aucune action restante pour ce tour ! Appuyer sur ESPACE pour passer au joueur suivant.")
+                
+            return
+        
         unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
         unite_active = unites_joueur[self.unite_active_index]
         unite_active.u_active = True
-
+        
+        #incrementation de self.actions pour limiter le nombre d'actions
         if event.key == pygame.K_UP:
             unite_active.deplacement(0,-1)
+            self.actions +=1
         elif event.key == pygame.K_DOWN:
             unite_active.deplacement(0,1)
+            self.actions +=1
         elif event.key == pygame.K_LEFT:
             unite_active.deplacement(-1,0)
+            self.actions +=1
         elif event.key == pygame.K_RIGHT:
             unite_active.deplacement(1,0)
+            self.actions +=1
         elif event.key == pygame.K_TAB:
             self.unite_active_index = (self.unite_active_index + 1) % len(unites_joueur)
             unite_active.u_active = False
-        elif event.key == pygame.K_SPACE:
-            self.joueur_actuel = "Equipe 2" if self.joueur_actuel == "Equipe 1" else "Equipe 1"
-            self.unite_active_index = 0
-            unite_active.u_active = False
+        #elif event.key == pygame.K_SPACE:
+         #   self.joueur_actuel = "Equipe 2" if self.joueur_actuel == "Equipe 1" else "Equipe 1"
+          #  self.unite_active_index = 0
+           # unite_active.u_active = False
+            #self.changer_tour()
         elif event.key == pygame.K_a:  # Touche pour attaquer
             self.attaquer_adverse(unite_active)
+            self.actions +=1
+            
+        
             
         # Vérifier les unités restantes après chaque action
         if self.verifier_unites():
@@ -198,6 +229,13 @@ class Game:
         pygame.time.wait(3000)  # Attendre 3 secondes avant de quitter
         pygame.quit()
         exit()
+        
+    def dessiner_interface(self):
+        """Dessine le compteur d'actions sur l'écran."""
+        n_actions = 5-self.actions
+        font = pygame.font.SysFont(None, 30)
+        texte = font.render(f"Tour {self.joueur_actuel} actions restantes : {n_actions}", True, (255, 255, 255))
+        self.fenetre.blit(texte, (10, 10))
 
 
 def main():
@@ -222,7 +260,9 @@ def main():
 
         game.dessiner_grille() # Dessiner la grille avec cases spéciales
         game.dessiner_unites()
-        pygame.display.update()  # Mettre à jour l'affichage
+        game.dessiner_interface()
+        pygame.display.update() # Mettre à jour l'affichage
+        
 
     pygame.quit()
 
