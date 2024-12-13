@@ -16,6 +16,8 @@ BLEU = (0, 0, 255)  # Eau
 ROUGE = (255, 0, 0)  # Lave
 BLANC = (255, 255, 255)  # VIe
 
+
+
 """cases de départ des unités -joueur1- (0,0) , (0,1) , (0,2) -joueur 2- (19,14) , (18,14) , (17,14)
 Eviter ces cases la pour generation des cases aleatoires +1 pour espace
 """
@@ -36,6 +38,9 @@ class Game:
         self.unite_active_index = 0
         self.joueur_actuel = "Equipe 1"
         self.actions = 0
+        self.afficher_portee = False  # Par défaut, la portée n'est pas affichée
+        
+        
 
     def generer_cases_speciales(self):
         """
@@ -81,13 +86,17 @@ class Game:
     def dessiner_grille(self):
         """Dessine une grille sur l'écran avec des cases spéciales."""
         self.fenetre.fill(NOIR)
+        
+            
         unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
         unite_active = unites_joueur[self.unite_active_index]
+        #Probleme avec index : si barbare tué par lave, list index out of range
 
         # Dessiner les cases de portée
-        for x, y in unite_active.calculer_portee():
-           if 0 <= x < LARGEUR // GRILLE_TAILLE and 0 <= y < HAUTEUR // GRILLE_TAILLE:
-               pygame.draw.rect(self.fenetre, COULEUR_PORTEE, 
+        if self.afficher_portee:
+            for x, y in unite_active.calculer_portee():
+                if 0 <= x < LARGEUR // GRILLE_TAILLE and 0 <= y < HAUTEUR // GRILLE_TAILLE:
+                    pygame.draw.rect(self.fenetre, COULEUR_PORTEE, 
                                 (x * GRILLE_TAILLE, y * GRILLE_TAILLE, GRILLE_TAILLE, GRILLE_TAILLE))
 
         # Dessiner les cases spéciales
@@ -135,7 +144,7 @@ class Game:
                unites_joueur = [u for u in self.unites if u.equipe == self.joueur_actuel]
                u_active = (unites_joueur.index(unite) == self.unite_active_index)
            unite.dessiner(self.fenetre, u_active)
-           
+        
            
     def changer_tour(self):
         """Passe au joueur suivant et réinitialise les actions."""
@@ -184,8 +193,12 @@ class Game:
            # unite_active.u_active = False
             #self.changer_tour()
         elif event.key == pygame.K_a:  # Touche pour attaquer
-            self.attaquer_adverse(unite_active)
-            self.actions +=1
+            if not self.afficher_portee:
+                self.afficher_portee = True  # Activer l'affichage de la portée
+            else:
+                self.afficher_portee = False  # Désactiver la portée et effectuer l'attaque
+                self.attaquer_adverse(unite_active)
+                self.actions = 5 #Une seule attaque possible et fin du tour
             
         
             
@@ -204,7 +217,7 @@ class Game:
     #             break
 
     def attaquer_adverse(self, unite_active):
-        """Permet à l'unité active d'attaquer une cible adverse si elle est dans sa portée."""
+        #Permet à l'unité active d'attaquer une cible adverse si elle est dans sa portée.
         adversaires = [u for u in self.unites if u.equipe != self.joueur_actuel]
         portee = unite_active.calculer_portee()
 
