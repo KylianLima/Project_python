@@ -1,1 +1,1 @@
-Ne prendre en compte que les fichiers case.py jeu.y et unite.py
+Ne prendre en compte que les fichiers case.py jeu.py et unite.py
